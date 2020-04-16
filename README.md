@@ -10,4 +10,5 @@
 - Jumper assortiti
 - Alimentatore 12 Vdc 1 A
 
+## Wiring
 ![Connections](https://github.com/open-electronics/ArduLockRFID/blob/master/connections.png)
