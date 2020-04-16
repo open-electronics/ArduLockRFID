@@ -9,3 +9,5 @@
 - Micro SD Storage Board
 - Jumper assortiti
 - Alimentatore 12 Vdc 1 A
+
+![Connections](https://github.com/open-electronics/ArduLockRFID/blob/master/connections.png)
