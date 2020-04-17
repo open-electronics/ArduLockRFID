@@ -5,12 +5,12 @@
 
 #include <EEPROMex.h>               //  https://github.com/thijse/Arduino-EEPROMEx
 #include <Wire.h>
-#include <RTClib.h>
-#include <Keypad.h>
+#include <RTClib.h>                 //  https://github.com/adafruit/RTClib
+#include <Keypad.h>                 //  https://playground.arduino.cc/Code/Keypad/#Download
 #include <PN532_I2C.h>              //  https://github.com/elechouse/PN532        
-#include <PN532.h>
-#include <NfcAdapter.h>
-#include <LiquidCrystal_I2C.h>
+#include <PN532.h>                  //  https://github.com/elechouse/PN532  
+#include <NfcAdapter.h>             //  https://github.com/elechouse/PN532  
+#include <LiquidCrystal_I2C.h>      //  https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library
 #include <SPI.h>
 #include <SD.h>
 
