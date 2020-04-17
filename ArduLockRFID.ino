@@ -81,11 +81,16 @@ bool SDInitialized;
 
 void setup() {
 
-  //  System init
-  if(Debug) Serial.begin(115200);
-
+  //  Pins init
+  pinMode(PIN_BUZZER, OUTPUT);
+  pinMode(PIN_RELAY, OUTPUT);
+  digitalWrite(PIN_RELAY, LOW);
   pinMode(PIN_SD_CS, OUTPUT);
   digitalWrite(PIN_SD_CS, HIGH);
+
+  //  System init
+  if(Debug) Serial.begin(115200);
+  
   if (!SD.begin(PIN_SD_CS)) {
     SDInitialized = false;
     WriteLog("Error: no SD card");
@@ -118,11 +123,6 @@ void setup() {
   lcd.init();
   lcd.backlight();
   lcd.clear();
-
-  //  Pins init
-  pinMode(PIN_BUZZER, OUTPUT);
-  pinMode(PIN_RELAY, OUTPUT);
-  digitalWrite(PIN_RELAY, LOW);
   
   //  Check for reading or initializing EEPROM
   if(EEPROM.read(1) == 255) {
