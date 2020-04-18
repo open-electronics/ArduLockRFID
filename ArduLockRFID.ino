@@ -62,7 +62,7 @@ Keypad keypad = Keypad(makeKeymap(Keys), RowPins, ColPins, KEY_ROWS, KEY_COLUMNS
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 char KeyBuffer[10];
 byte KeyBufferIndex = 0;
-byte CurrentPage = 0;
+byte SystemStatus = 0;
 long LastKeyPressTime = 0;
 long BlockTime = 0;
 int AttemptsCount = 0;
@@ -200,7 +200,7 @@ void ManageActions(bool confirm) {
 
   if(confirm == true) {
     DateTime CurrentDate = rtc.now();
-    switch(CurrentPage) {
+    switch(SystemStatus) {
       //  Menu: lock key or master key entered
       case 0:
         if(AttemptBlocked == false && String(KeyBuffer) == String(MASTER_KEY)) {
@@ -208,7 +208,7 @@ void ManageActions(bool confirm) {
           AttemptsCount = 0;
           WriteLCD("SETTINGS", "Digit 1-11", 0);
           WriteLog("Master key OK: enter in Settings.");
-          CurrentPage = 1;
+          SystemStatus = 1;
           Buzz(50, 2);
         } else if(AttemptBlocked == false && IsGood() && CurrentDate.hour() >= Config.HHStartActive && CurrentDate.hour() <= Config.HHEndActive) {
           //  Lock key
@@ -411,77 +411,77 @@ void ManageSettings() {
     //  Enter in code add
     case 1:
       WriteLCD("ADD CODE", "6 digits", 0);
-      CurrentPage = 2;
+      SystemStatus = 2;
       Buzz(50, 2);
       WriteLog("Settings: Enter in code add.");
     break;
     //  Enter in code remove
     case 2:
       WriteLCD("REMOVE CODE", "6 digits", 0);
-      CurrentPage = 3;
+      SystemStatus = 3;
       Buzz(50, 2);
       WriteLog("Settings: Enter in code remove.");
     break;
     //  Enter in RFID association
     case 3:
       WriteLCD("ADD RFID", "1-10 & pass RFID", 0);
-      CurrentPage = 4;
+      SystemStatus = 4;
       Buzz(50, 2);
       WriteLog("Settings: Enter in RFID association.");
     break;
     //  Enter in RFID remove
     case 4:
       WriteLCD("REMOVE RFID", "1-10", 0);
-      CurrentPage = 5;
+      SystemStatus = 5;
       Buzz(50, 2);
       WriteLog("Settings: Enter in RFID remove.");
     break;
     //  Enter in start active hour
     case 5:
       WriteLCD("START ACTIVE HH", "Enter HH (0-23)", 0);
-      CurrentPage = 6;
+      SystemStatus = 6;
       Buzz(50, 2);
       WriteLog("Settings: Enter in set start active hour.");
     break;
     //  Enter in end active hour
     case 6:
       WriteLCD("END ACTIVE HH", "Enter HH (0-23)", 0);
-      CurrentPage = 7;
+      SystemStatus = 7;
       Buzz(50, 2);
       WriteLog("Settings: Enter in set end active hour.");
     break;
     //  Enter in set manual date (GGMMAAAA)
     case 7:
       WriteLCD("SET DATE", "Format DDMMYYYY", 0);
-      CurrentPage = 8;
+      SystemStatus = 8;
       Buzz(50, 2);
       WriteLog("Settings: Enter in set manual date GGMMAAAA.");
     break;
     //  Enter in set manual time (HHMMSS)
     case 8:
       WriteLCD("SET TIME", "Format HHMMSS", 0);
-      CurrentPage = 9;
+      SystemStatus = 9;
       Buzz(50, 2);
       WriteLog("Settings: Enter in set manual time HHMMSS.");
     break;
     //  Enter in set max attempts
     case 9:
       WriteLCD("MAX ATTEMPTS", "0-20,0=no active", 0);
-      CurrentPage = 10;
+      SystemStatus = 10;
       Buzz(50, 2);
       WriteLog("Settings: Enter in set max attempts.");
     break;
     //  Enter in set block seconds
     case 10:
       WriteLCD("LOCK BLOCK SEC.", "1-120", 0);
-      CurrentPage = 11;
+      SystemStatus = 11;
       Buzz(50, 2);
       WriteLog("Settings: Enter in set block seconds.");
     break;
     //  Enter in set relay active seconds
     case 11:
       WriteLCD("RELAY ACTIVE SEC", "1-30", 0);
-      CurrentPage = 12;
+      SystemStatus = 12;
       Buzz(50, 2);
       WriteLog("Settings: Enter in set relay active seconds.");
     break;
@@ -508,7 +508,7 @@ void ReadRFID() {
       Read |= NFCuid[i];
     }
     WriteLog("Read RFID: " + String(Read));
-    if(CurrentPage == 0 && CurrentDate.secondstime() >= LastRFIDReadTime + 3 && AttemptBlocked == false && CurrentDate.hour() >= Config.HHStartActive && CurrentDate.hour() <= Config.HHEndActive) {
+    if(SystemStatus == 0 && CurrentDate.secondstime() >= LastRFIDReadTime + 3 && AttemptBlocked == false && CurrentDate.hour() >= Config.HHStartActive && CurrentDate.hour() <= Config.HHEndActive) {
       //  RFID open lock
       for(int i=0; i<9; i++) {
         if(Config.RFIDCode[i] == Read) {
@@ -526,7 +526,7 @@ void ReadRFID() {
         WriteLCD("ERROR", "Invalid RFID", 3);
         WriteLog("Error: invalid RFID.");
       }
-    } else if(CurrentPage == 4 && CurrentDate.secondstime() >= LastRFIDReadTime + 3 ) {
+    } else if(SystemStatus == 4 && CurrentDate.secondstime() >= LastRFIDReadTime + 3 ) {
       //  RFID association
       Val = atol(KeyBuffer);
       if(Val != 0 && Val >= 1 && Val <= 10) {
@@ -554,7 +554,7 @@ void ReadRFID() {
 //  Check if last key was pressed too much seconds ago and reset to menu
 void CheckResetTime() {
 
-  if(CurrentPage != 0) {
+  if(SystemStatus != 0) {
     DateTime CurrentDate = rtc.now();
     if (CurrentDate.secondstime() - LastKeyPressTime > RESET_TIME) {
       WriteLog("No key pressed: return to menu.");
@@ -568,7 +568,7 @@ void CheckResetTime() {
 //  Return to menu page with success or not sound
 void ReturnToMenu(bool success) {
 
-  CurrentPage = 0;
+  SystemStatus = 0;
   if(success == true) {
     Buzz(700, 0);
   } else {
@@ -710,12 +710,16 @@ void WriteLCD(String row1, String row2, int sec) {
 void RefreshLCD() {
 
   DateTime CurrentDate = rtc.now();
-  if(CurrentPage == 0 && CurrentDate.secondstime() >= LCDDisplayTime && CurrentDate.secondstime() >= LCDRefreshTime) {
-    LCDRefreshTime = CurrentDate.secondstime() + 10;
+  if(SystemStatus == 0 && CurrentDate.secondstime() >= LCDDisplayTime && CurrentDate.secondstime() >= LCDRefreshTime) {
+    LCDRefreshTime = CurrentDate.secondstime() + 3;
     char d[15];
     sprintf(d, "   %02d/%02d/%02d", CurrentDate.day(), CurrentDate.month(), CurrentDate.year());
     char t[10];
-    sprintf(t, "     %02d:%02d",  CurrentDate.hour(), CurrentDate.minute());
+    if(!AttemptBlocked) {
+      sprintf(t, "     %02d:%02d",  CurrentDate.hour(), CurrentDate.minute());
+    } else {
+      sprintf(t, "X    %02d:%02d",  CurrentDate.hour(), CurrentDate.minute());
+    }
     WriteLCD(d, t, 0);
   }
   
